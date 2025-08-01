@@ -4,3 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# For working with time
+chrono = "0.4.41"
+
+# SQLite for Rust 
+rusqlite = { version = "0.37.0", features = ["bundled"] }
+
+# Lets you generate random UUIDs
+[dependencies.uuid]
+version = "1.17.0"
+features = [
+    "v4",
+]
