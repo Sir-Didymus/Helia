@@ -1,4 +1,4 @@
-# Helia GTD
+# Helia
 
 ## What is Helia?
 

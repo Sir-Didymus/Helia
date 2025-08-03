@@ -1,31 +1,67 @@
-//! This module contains the API over which Helia GTD's functionality can be accessed.
+//! This module contains the API over which Helia's functionality can be accessed.
 
 use crate::{
-    api::{helia_error::HeliaError, helia_gtd::HeliaGtd, requests::CreateActionRequest},
+    api::{helia_error::HeliaError, helia_impl::HeliaImpl, requests::CreateActionRequest},
     model::action::Action,
     storage::{self},
 };
 
 // Contains the `Request` types.
+// These are used to issue requests to the API.
 mod requests;
 // Contains the API error definitions.
 mod helia_error;
 // Contains the concrete implementation of the [`HeliaApi`] trait.
-mod helia_gtd;
+mod helia_impl;
 
 /// The HeliaApi provides everything necessary to build a fully functioning GTD app.
+///
+/// To access the API, fetch a [HeliaApi] trait object by calling the [new_production()] function:
+/// ```
+/// use helia::api;
+/// let helia_api = helia::new_production().unwrap();
+/// helia_api.create_action(&dummy_action);
+/// ```
 pub trait HeliaApi {
+    /// Retrieves the storage version of the backend.
+    fn storage_version(&self) -> Result<u32, HeliaError>;
+
     /// Tries to create an [Action].
     fn create_action(&self, request: CreateActionRequest) -> Result<Action, HeliaError>;
 }
 
 /// Factory function creating a new [HeliaApi] instance ready for production.
 pub fn new_production() -> Result<impl HeliaApi, HeliaError> {
-    let storage_result = storage::new_production_storage("");
+    let storage_result = storage::new_production_storage("helia.db");
     let storage = match storage_result {
         Ok(storage) => storage,
-        Err(_error) => return Err(HeliaError::DbConnectionFailed),
+        Err(_error) => return Err(HeliaError::StorageConnectionFailed),
     };
 
-    Ok(HeliaGtd::new(storage))
+    Ok(HeliaImpl::new(storage))
+}
+
+/// Factory function creating a new [HeliaApi] instance for testing purposes (in-memory).
+pub fn new_testing() -> Result<impl HeliaApi, HeliaError> {
+    let storage_result = storage::new_in_memory_storage();
+    let storage = match storage_result {
+        Ok(storage) => storage,
+        Err(_error) => return Err(HeliaError::StorageConnectionFailed),
+    };
+
+    Ok(HeliaImpl::new(storage))
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::api;
+
+    use super::*;
+
+    #[test]
+    fn test_storage_version_for_new_storage_is_0() {
+        let helia_api = api::new_testing().unwrap();
+        let storage_version = helia_api.storage_version().unwrap();
+        assert_eq!(storage_version, 0);
+    }
 }

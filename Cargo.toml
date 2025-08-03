@@ -8,11 +8,14 @@ edition = "2024"
 chrono = "0.4.41"
 
 # SQLite for Rust 
-rusqlite = { version = "0.37.0", features = ["bundled"] }
+rusqlite = { version = "0.37.0", features = ["bundled", "uuid"] }
+
+# Convenient error handling
+thiserror = "2.0.12"
 
 # Lets you generate random UUIDs
 [dependencies.uuid]
 version = "1.17.0"
 features = [
-    "v4",
+    "v4"
 ]
