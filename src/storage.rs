@@ -68,6 +68,8 @@ mod tests {
 
     #[test]
     fn test_run_production_migrations_for_new_db_is_ok() {
+        crate::test_utils::init_test_logging();
+
         let mut storage = new_in_memory_storage().unwrap();
         let result = storage.run_migrations(&builtin_migrations());
         assert!(result.is_ok())

@@ -10,3 +10,5 @@ pub mod api;
 mod storage;
 // Domain models
 pub mod model;
+// Helper functions for tests
+mod test_utils;

@@ -6,17 +6,19 @@ use crate::{
     storage::{self},
 };
 
+use tracing_subscriber;
+
 // Contains the `Request` types.
 // These are used to issue requests to the API.
 mod requests;
 // Contains the API error definitions.
 mod helia_error;
-// Contains the concrete implementation of the [`HeliaApi`] trait.
+// Contains the concrete implementation of the `HeliaApi` trait.
 mod helia_impl;
 
 /// The HeliaApi provides everything necessary to build a fully functioning GTD app.
 ///
-/// To access the API, fetch a [HeliaApi] trait object by calling the [new_production()] function:
+/// To access the API, fetch a [HeliaApi] by calling the [new_production()] function:
 /// ```
 /// use helia::api;
 /// let helia_api = helia::new_production().unwrap();
@@ -50,6 +52,19 @@ pub fn new_testing() -> Result<impl HeliaApi, HeliaError> {
     };
 
     Ok(HeliaImpl::new(storage))
+}
+
+/// Initiates logging for the Helia backend.
+#[unsafe(no_mangle)]
+pub extern "C" fn helia_init_logging() {
+    static INIT: std::sync::Once = std::sync::Once::new();
+
+    INIT.call_once(|| {
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::INFO)
+            .with_target(false)
+            .init();
+    });
 }
 
 #[cfg(test)]

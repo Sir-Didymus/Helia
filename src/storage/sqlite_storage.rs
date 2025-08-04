@@ -1,6 +1,7 @@
 //! This module contains the SQLite implementation of the [Storage] trait.
 
 use rusqlite::Connection;
+use tracing::{debug, error, info, instrument};
 
 use crate::{
     model::action::Action,
@@ -58,8 +59,10 @@ impl Storage for SqliteStorage {
         }
     }
 
+    #[instrument(skip(self, source))]
     fn run_migrations(&mut self, source: &dyn MigrationSource) -> Result<u32, StorageError> {
         let current_version = self.schema_version()?;
+        debug!(current_version, "Fetched current schema version.");
 
         let pending_migrations: Vec<&Migration> = source
             .migrations()
@@ -69,43 +72,59 @@ impl Storage for SqliteStorage {
 
         if pending_migrations.is_empty() {
             // Nothing to do, return the current version
+            info!("No pending migrations. Database is up to date at version {current_version}.");
             return Ok(current_version);
         }
 
-        let tx = self
-            .conn
-            .transaction()
-            .map_err(|_| StorageError::TransactionInitFailed)?;
+        info!(
+            count = pending_migrations.len(),
+            "Running pendning migrations."
+        );
+
+        let tx = self.conn.transaction().map_err(|err| {
+            error!(
+                error = %err,
+                "Failed to initiate the transaction."
+            );
+            StorageError::TransactionInitFailed
+        })?;
 
         for migration in &pending_migrations {
-            tx.execute_batch(migration.sql).map_err(|err| {
-                eprint!(
-                    "Migration {} failed during execution:\nSQL:\n{}\nError:\n{}",
-                    migration.version, migration.sql, err
+            debug!(version = migration.version, "Running migration.");
+
+            if let Err(err) = tx.execute_batch(migration.sql) {
+                error!(
+                    version = migration.version,
+                    sql = migration.sql,
+                    error = %err,
+                    "Migration failed during execution."
                 );
-                StorageError::MigrationFailed(migration.version)
-            })?;
+                return Err(StorageError::MigrationFailed(migration.version));
+            }
 
             // `PRAGMA user_version` only supports literal values, no placeholders.
             let pragma_sql = format!("PRAGMA user_version = {}", migration.version);
 
-            tx.execute_batch(&pragma_sql).map_err(|err| {
-                eprint!(
-                    "Failed to set PRAGMA user_version to {}:\n{}",
-                    migration.version, err
+            if let Err(err) = tx.execute_batch(&pragma_sql) {
+                error!(
+                        version = migration.version,
+                        error = %err,
+                        "Failed to set PRAGAMA usser_version."
                 );
-                StorageError::MigrationFailed(migration.version)
-            })?;
+                return Err(StorageError::MigrationFailed(migration.version));
+            }
         }
 
-        let result = tx.commit();
-        if let Err(error) = result {
-            eprint!("Failed to commit transaction:{error}");
+        if let Err(err) = tx.commit() {
+            error!(error = %err, "Failed to commit transaction.");
             return Err(StorageError::TransactionCommitFailed);
         }
 
         // Safe: cannot be `None`, see the `ìs_empty` check above
-        Ok(pending_migrations.last().unwrap().version)
+        let final_version = pending_migrations.last().unwrap().version;
+        info!(final_version, "All migrations applied successfully.");
+
+        Ok(final_version)
     }
 
     fn insert_action(&self, action: &Action) -> Result<(), StorageError> {
