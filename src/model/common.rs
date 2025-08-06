@@ -1,6 +1,9 @@
-//! This module contains common entities which are used in the wrapper types.
+//! Common database entities.
+//!
+//! This module contains common database entities which are used in the more specific types like
+//! [crate::model::action::action_id::ActionId].
 
 // Module for working with ids.
-pub mod id;
-// Module for working with creation dates.
-pub mod create_date;
+pub(crate) mod id;
+// Module for working with dates.
+pub(crate) mod date;

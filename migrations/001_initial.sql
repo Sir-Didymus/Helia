@@ -3,7 +3,7 @@
 CREATE TABLE action (
     id BLOB PRIMARY KEY,
     title TEXT NOT NULL,
-    created_at DATETIME
+    created_at DATETIME NOT NULL
 );
 
 PRAGMA user_version = 1;

@@ -14,6 +14,9 @@ pub enum StorageError {
     #[error("migration to version {0} failed")]
     MigrationFailed(u32),
 
+    #[error("failed to prepare sql statement")]
+    PrepareStatementFailed,
+
     #[error("query execution failed")]
     QueryFailed,
 

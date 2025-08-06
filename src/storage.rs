@@ -54,13 +54,18 @@ mod tests {
 
     #[test]
     fn test_insert_action_is_ok() {
-        let storage = new_in_memory_storage().unwrap();
+        crate::test_utils::init_test_logging();
+
+        let mut storage = new_in_memory_storage().unwrap();
+        let _ = storage.run_migrations(&builtin_migrations());
         let action = dummy_action();
         assert!(storage.insert_action(&action).is_ok());
     }
 
     #[test]
     fn test_schema_version_for_new_databse_is_0() {
+        crate::test_utils::init_test_logging();
+
         let storage = new_in_memory_storage().unwrap();
         let schema_version = storage.schema_version().unwrap();
         assert_eq!(schema_version, 0);

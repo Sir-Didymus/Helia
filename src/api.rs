@@ -10,7 +10,7 @@ use tracing_subscriber;
 
 // Contains the `Request` types.
 // These are used to issue requests to the API.
-mod requests;
+pub mod requests;
 // Contains the API error definitions.
 mod helia_error;
 // Contains the concrete implementation of the `HeliaApi` trait.

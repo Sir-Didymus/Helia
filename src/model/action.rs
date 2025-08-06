@@ -1,6 +1,11 @@
 //! A GTD action.
 //!
-//! This can be any GTD action with any action state.
+//! This model contains the [Action] type.
+//! An action in GTD is a concrete, actionable step to move closer to some kind of goal.
+//!
+//! In Helia, an action can have varying amounts of data.
+
+use core::fmt;
 
 use crate::model::action::{
     acion_create_date::ActionCreateDate, action_id::ActionId, action_name::ActionName,
@@ -14,6 +19,7 @@ pub mod action_name;
 pub mod acion_create_date;
 
 // A GTD Action.
+#[derive(Debug)]
 pub struct Action {
     action_id: ActionId,
     action_name: ActionName,
@@ -22,7 +28,7 @@ pub struct Action {
 
 impl Action {
     /// Returns a new [Action] instance.
-    pub fn new(
+    pub(crate) fn new(
         action_id: ActionId,
         action_name: ActionName,
         action_create_date: ActionCreateDate,
@@ -34,19 +40,31 @@ impl Action {
         }
     }
 
-    /// Return a reference to the [ActionId].
+    /// Return a reference to the action's [ActionId].
     pub fn action_id(&self) -> &ActionId {
         &self.action_id
     }
 
-    /// Returns a reference to the [ActionName].
+    /// Returns a reference to the action's [ActionName].
     pub fn action_name(&self) -> &ActionName {
         &self.action_name
     }
 
-    /// Returns a reference to the [ActionCreateDate].
+    /// Returns a reference to the action's [ActionCreateDate].
     pub fn action_create_date(&self) -> &ActionCreateDate {
         &self.action_create_date
+    }
+}
+
+// Nicer formatting for actions when printed to the console.
+impl fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f)?;
+        writeln!(f, "Action {{")?;
+        writeln!(f, "    {}", self.action_id())?;
+        writeln!(f, "    {}", self.action_name())?;
+        writeln!(f, "    {}", self.action_create_date)?;
+        writeln!(f, "}}")
     }
 }
 

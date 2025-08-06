@@ -7,7 +7,7 @@ use crate::{
     model::action::Action,
     storage::{
         Storage,
-        migration::{MIGRATIONS, Migration, MigrationSource},
+        migration::{Migration, MigrationSource},
         storage_error::StorageError,
     },
 };
@@ -20,11 +20,20 @@ pub struct SqliteStorage {
 impl SqliteStorage {
     /// Creates a new [SqliteStorage] instance with persistence.
     pub fn new_persistence(db_path: &str) -> Result<Self, StorageError> {
+        debug!(
+            db_path,
+            "Trying to open database connection with persistence."
+        );
         let conn = Connection::open(db_path);
         let conn = match conn {
             Ok(sqtlite_storage) => sqtlite_storage,
-            Err(_sqlite_error) => return Result::Err(StorageError::ConnectionError),
+            Err(err) => {
+                error!(db_path, error = %err, "Failed to establish database connection.");
+                return Result::Err(StorageError::ConnectionError);
+            }
         };
+
+        info!(db_path, "Database connection established successfully.");
 
         let sqlite_storage = SqliteStorage { conn };
 
@@ -33,11 +42,17 @@ impl SqliteStorage {
 
     /// Creates a new in-memory [SqliteStorage].
     pub fn new_in_memory() -> Result<Self, StorageError> {
+        debug!("Trying to open in-memory database connection.");
         let conn = Connection::open_in_memory();
         let conn = match conn {
             Ok(sqtlite_storage) => sqtlite_storage,
-            Err(_sqlite_error) => return Result::Err(StorageError::ConnectionError),
+            Err(_sqlite_error) => {
+                error!("Failed to establish database connection.");
+                return Result::Err(StorageError::ConnectionError);
+            }
         };
+
+        info!("Database connection established successfully.");
 
         let sqlite_storage = SqliteStorage { conn };
 
@@ -128,6 +143,30 @@ impl Storage for SqliteStorage {
     }
 
     fn insert_action(&self, action: &Action) -> Result<(), StorageError> {
-        Err(StorageError::InsertFailed)
+        debug!(%action, "Preparing insert action sql statement.");
+
+        let stmt_result = self
+            .conn
+            .prepare_cached("INSERT INTO action (id, title, created_at) VALUES (?1, ?2, ?3)");
+
+        let mut stmt = match stmt_result {
+            Ok(stmt) => stmt,
+            Err(err) => {
+                error!(error = %err, "Failed to prepare sql statement.");
+                return Err(StorageError::PrepareStatementFailed);
+            }
+        };
+
+        match stmt.execute((
+            &action.action_id().uuid(),
+            &action.action_name().as_str(),
+            &action.action_create_date().value(),
+        )) {
+            Err(err) => {
+                error!(err = % err, "Failed to insert action.");
+                Err(StorageError::InsertFailed)
+            }
+            Ok(_num_rows_updated) => Ok(()),
+        }
     }
 }
