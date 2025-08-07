@@ -1,4 +1,4 @@
-//! This module contains the SQLite implementation of the [Storage] trait.
+//! SQLite implementation of the [Storage] trait.
 
 use rusqlite::Connection;
 use tracing::{debug, error, info, instrument};
@@ -6,9 +6,9 @@ use tracing::{debug, error, info, instrument};
 use crate::{
     model::action::Action,
     storage::{
-        Storage,
         migration::{Migration, MigrationSource},
         storage_error::StorageError,
+        Storage,
     },
 };
 
@@ -114,7 +114,9 @@ impl Storage for SqliteStorage {
                     error = %err,
                     "Migration failed during execution."
                 );
-                return Err(StorageError::MigrationFailed(migration.version));
+                return Err(StorageError::MigrationFailed {
+                    version: migration.version,
+                });
             }
 
             // `PRAGMA user_version` only supports literal values, no placeholders.
@@ -126,7 +128,9 @@ impl Storage for SqliteStorage {
                         error = %err,
                         "Failed to set PRAGAMA usser_version."
                 );
-                return Err(StorageError::MigrationFailed(migration.version));
+                return Err(StorageError::MigrationFailed {
+                    version: migration.version,
+                });
             }
         }
 

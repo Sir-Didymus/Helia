@@ -12,7 +12,7 @@ use crate::{
     },
 };
 
-// Error definitions for everything concerning persistence.
+// Error definitions for everything concerning persistence
 pub mod storage_error;
 // SQLite implementation
 mod sqlite_storage;
@@ -50,14 +50,14 @@ pub fn new_in_memory_storage() -> Result<impl Storage, StorageError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{model::action::test_utils::dummy_action, storage::migration::builtin_migrations};
+    use crate::model::action::test_utils::dummy_action;
 
     #[test]
     fn test_insert_action_is_ok() {
         crate::test_utils::init_test_logging();
 
         let mut storage = new_in_memory_storage().unwrap();
-        let _ = storage.run_migrations(&builtin_migrations());
+        let _ = storage.run_migrations(&migration::builtin_migrations());
         let action = dummy_action();
         assert!(storage.insert_action(&action).is_ok());
     }
@@ -76,7 +76,7 @@ mod tests {
         crate::test_utils::init_test_logging();
 
         let mut storage = new_in_memory_storage().unwrap();
-        let result = storage.run_migrations(&builtin_migrations());
+        let result = storage.run_migrations(&migration::builtin_migrations());
         assert!(result.is_ok())
     }
 }

@@ -1,4 +1,7 @@
+//! Id's of [`Action`s](super::Action).
+//!
 //! This module contains the [ActionId] struct.
+//! It contains a *uuid*, a globally unique identifier.
 
 use uuid::Uuid;
 

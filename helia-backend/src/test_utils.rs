@@ -1,6 +1,7 @@
 //! This module contains helper functions and utilities for unit tests.
 
 /// Initiates logging for unit tests.
+#[cfg(test)]
 pub fn init_test_logging() {
     static INIT: std::sync::Once = std::sync::Once::new();
 

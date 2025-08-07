@@ -1,13 +1,15 @@
-//! This module contains abstractions and functionality for working with dates.
+//! Abstractions and functionality for working with dates.
 //!
-//! Dates in Helia are always stored as UTC dates.
+//! Contains the [Date] type.
+//! Dates in Helia are always stored as UTC.
 
 use chrono::{DateTime, Utc};
 
 /// Contains a date and time value.
 ///
 /// This type is not meant to be used directly.
-/// Use one of the various wrapper types, like [ActionCreateDate].
+/// Use one of the various wrapper types, like
+/// [ActionCreateDate](crate::model::action::ActionCreateDate).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Date(DateTime<Utc>);
 
@@ -46,7 +48,7 @@ mod tests {
         let date1 = Date::now();
         let date2 = Date::now();
 
-        assert_eq!(date1.0.date_naive(), date2.0.date_naive()); 
+        assert_eq!(date1.0.date_naive(), date2.0.date_naive());
     }
 
     #[test]

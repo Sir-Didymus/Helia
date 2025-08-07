@@ -1,6 +1,6 @@
 //! Abstractions and functionality for working with ids.
 //!
-//! This module contains the [Id] type, which is globally unique identifier.
+//! This module contains the [Id] type, a globally unique identifier.
 
 use uuid::Uuid;
 

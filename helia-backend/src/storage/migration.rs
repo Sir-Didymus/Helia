@@ -1,4 +1,4 @@
-//! This module provides types and utilities for managing database schema migrations in Helia.
+//! Types and utilities for managing database schema migrations in Helia.
 //!
 //! Migrations are used to update the database schema over time.
 //! Each migration is associated with a version number and contains the SQL statements necessary to
@@ -8,12 +8,12 @@
 //! These migrations are embedded in the binary at compile time using the [`include_migration!`]
 //! macro, which loads SQL files from the `migrations/` directory located at the root of the project.
 //!
-//! The [MigrationSource] trait defines a source from which migrations can be retrieved via its
+//! The [`MigrationSource`] trait defines a source from which migrations can be retrieved via its
 //! [`MigrationSource::migrations()`] method.
 //! There are two migration sources available, one for testing and one for production.
 //!
-//! For testing, you can use [test_migrations()].
-//! For production, use [builtin_migrations()].
+//! For testing, you can use [`test_migrations()`].
+//! For production, use [`builtin_migrations()`].
 
 /// Represents a single database migration step.
 ///
@@ -35,13 +35,6 @@ pub struct Migration {
 /// [`test_migrations()`] for testing.
 ///
 /// Use the [`MigrationSource::migrations()`] method to get all available migrations.
-///
-/// # Usage
-///
-/// ```
-/// let migration_source = builtin_migrations();
-/// let migrations = migration_source.migrations();
-/// ```
 pub trait MigrationSource {
     /// Returns all [`Migration`]s.
     fn migrations(&self) -> &Vec<Migration>;
@@ -55,6 +48,8 @@ pub fn builtin_migrations() -> impl MigrationSource {
 }
 
 /// Returns an [`MigrationSource`] implementation for testing purposes.
+#[cfg(test)]
+#[allow(dead_code)]
 pub fn test_migrations(migrations: Vec<Migration>) -> impl MigrationSource {
     TestMigrations { migrations }
 }
@@ -78,10 +73,12 @@ impl MigrationSource for BuiltInMigrations {
 ///
 /// You can pass this implementation of [`MigrationSource`] a vector of [`Migration`]s you want to
 /// execute. This is useful for testing scenarios involving faulty migrations.
+#[cfg(test)]
 struct TestMigrations {
     migrations: Vec<Migration>,
 }
 
+#[cfg(test)]
 impl MigrationSource for TestMigrations {
     fn migrations(&self) -> &Vec<Migration> {
         &self.migrations
@@ -89,12 +86,6 @@ impl MigrationSource for TestMigrations {
 }
 
 /// Includes a SQL migration file from the `migrations/` directory located at the project root.
-///
-/// # Usage
-///
-/// ```
-/// const MIGRATION_1: &str = include_migration!("001_initial.sql");
-/// ```
 macro_rules! include_migration {
     ($file:literal) => {
         include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/migrations/", $file))

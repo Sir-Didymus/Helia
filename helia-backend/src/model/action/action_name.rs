@@ -1,3 +1,5 @@
+//! Id's of [`Action`s](super::Action).
+//!
 //! This module contains the [ActionName] struct.
 
 /// The name of an [Action](crate::model::action::Action).

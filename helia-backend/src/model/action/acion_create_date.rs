@@ -1,4 +1,4 @@
-//! Creation dates of [`Action`s](crate::model::action::Action).
+//! Creation dates of [`Action`s](super::Action).
 //!
 //! This module contains the [ActionCreateDate] struct.
 //! It represents the creation date of an action in UTC.
@@ -13,7 +13,7 @@ use crate::model::common::date::Date;
 pub struct ActionCreateDate(Date);
 
 impl ActionCreateDate {
-    /// Creates a new [CreateDate] instance of the current time.
+    /// Creates a new [ActionCreateDate] instance of the current time.
     pub fn now() -> Self {
         Self(Date::now())
     }
@@ -52,6 +52,9 @@ mod tests {
     #[test]
     fn test_display() {
         let action_create_date = ActionCreateDate::now();
-        assert_eq!(format!("{action_create_date}"), format!("ActionCreateDate(Date({}))", action_create_date.value()));
+        assert_eq!(
+            format!("{action_create_date}"),
+            format!("ActionCreateDate(Date({}))", action_create_date.value())
+        );
     }
 }
